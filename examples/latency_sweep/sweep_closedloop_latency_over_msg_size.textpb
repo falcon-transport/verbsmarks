@@ -1,0 +1,44 @@
+# proto-file: tools/experiment_config.proto
+# proto-message: ExperimentConfig
+
+# Parameter sweep for 2-node closed-loop WRITE latency, with 1B-2MB op sizes.
+
+hosts {
+  name: "host1"
+  follower_count: 1
+}
+hosts: {
+  name: "host2"
+  follower_count: 1
+}
+
+# Base config is a LeaderConfig defining constant config options. Any parameters
+# defined in verbsmarks_sweep_parameters will override the base config.
+traffic_pattern_template_file_path: "examples/latency_sweep/latency_base_config.textpb"
+# Optionally specify iterations to repeat each parameter combination multiple
+# times.
+experiment_iterations: 0
+
+verbsmarks_sweep_parameters {
+  # Sweep configs will include cartesian product of all repeated parameters
+  # (i.e., each combination of message size and op type).
+  message_sizes: 1
+  message_sizes: 8
+  message_sizes: 64
+  message_sizes: 512
+  message_sizes: 4096
+  message_sizes: 8192
+  message_sizes: 32768
+  message_sizes: 131072
+  message_sizes: 524288
+  message_sizes: 1048576
+  message_sizes: 2097152
+
+  op_ratio_configs: {
+    op_ratio: {
+      op_code: RDMA_OP_WRITE
+      ratio: 1.0
+    }
+  }
+}
+

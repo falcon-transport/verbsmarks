@@ -1,0 +1,73 @@
+# proto-file: verbsmarks.proto
+# proto-message: LeaderConfig
+
+# 2-node unidirectional traffic with operation type and size distributions
+# defined on a per-follower basis.
+
+group_size: 2
+quorum_time_out_sec: 300  # Waiting time for all nodes to join the quorum.
+traffic_patterns: {
+  global_traffic_id: 1
+  participants: {
+    all: true  # Specify all instead of specific_followers to use all nodes.
+  }
+  connection_type: CONNECTION_TYPE_RC
+  open_loop_parameters {
+    offered_load_gbps: 0.00001
+    arrival_time_distribution_type: ARRIVAL_TIME_DISTRIBUTION_POISSON
+  }
+  # Follower 0 issues WRITE, READ, SEND_WITH_IMMEDIATE, WRITE_IMMEDIATE
+  #            at 2:1:1:1 ratio
+  # Follower 1 issues SEND_RECEIVE, SEND_WITH_IMMEDIATE, WRITE_IMMEDIATE
+  #            at 1:1:1 ratio
+  traffic_characteristics {
+    # Only follower 0 issues WRITE and READ, because `initiators` field has 0.
+    op_ratio: {
+      op_code: RDMA_OP_WRITE
+      ratio: 2
+      initiators: 0
+    }
+    op_ratio: {
+      op_code: RDMA_OP_READ
+      ratio: 1
+      initiators: 0
+    }
+    # Only follower 1 issues SEND
+    op_ratio: {
+      op_code: RDMA_OP_SEND_RECEIVE
+      ratio: 1
+      initiators: 1
+    }
+    # Both followers issue SEND_WITH_IMMEDIATE and WRITE_IMMEDIATE
+    op_ratio: {
+      op_code: RDMA_OP_SEND_WITH_IMMEDIATE_RECEIVE
+      ratio: 1
+    }
+    # If `initiators` is unspecified, the op_ratio applies to all followers.
+    op_ratio: {
+      op_code: RDMA_OP_WRITE_IMMEDIATE
+      ratio: 1
+      initiators: 0
+      initiators: 1
+    }
+    message_size_distribution_type: MESSAGE_SIZE_DISTRIBUTION_FIXED
+    # For MESSAGE_SIZE_DISTRIBUTION_FIXED, mean==min==max.
+    size_distribution_params_in_bytes: { mean: 8 }
+    delay_time: { seconds: 0 }
+    buffer_time: { seconds: 0 }
+    experiment_time: { seconds: 10 }
+    batch_size: 1
+    # Ops with ≤36B size will be submitted inline.
+    inline_threshold: 36
+  }
+  explicit_traffic: {
+    # Bidirectional traffic is enabled, with the specific ops defined above.
+    flows: { initiator: 0 target: 1 }
+    bidirectional: true
+  }
+  metrics_collection: {
+    # Record latency distribution for each second of runtime.
+    enable_per_second_stats: true
+  }
+}
+

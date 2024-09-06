@@ -1,0 +1,68 @@
+# proto-file: verbsmarks.proto
+# proto-message: LeaderConfig
+
+# Incast workload with 1000KB WRITE ops from 5 initiator nodes to 1 target node.
+
+group_size: 6 # 5:1 incast with 6 nodes total.
+quorum_time_out_sec: 300  # Waiting time for all nodes to join the quorum.
+
+traffic_patterns: {
+  global_traffic_id: 1
+  participants: {
+    all: true  # Specify all instead of specific_followers to use all nodes.
+  }
+  connection_type: CONNECTION_TYPE_RC
+  closed_loop_max_outstanding: 2
+  traffic_characteristics {
+    op_ratio: { op_code: RDMA_OP_WRITE ratio: 1 }
+    message_size_distribution_type: MESSAGE_SIZE_DISTRIBUTION_FIXED
+    # For MESSAGE_SIZE_DISTRIBUTION_FIXED, mean==min==max.
+    size_distribution_params_in_bytes: { mean: 1024000 }
+    delay_time: { seconds: 0 }
+    buffer_time: { seconds: 0 }
+    experiment_time: { seconds: 60 }
+    batch_size: 1
+    signal_only_last_op_in_batch: true
+    inline_threshold: 128
+  }
+  explicit_traffic: {
+    # For incast, all flows target a single node.
+    # With repeat=100, each flow uses 100 connections.
+    flows: { initiator: 1 target: 0 repeat: 100 }
+    flows: { initiator: 2 target: 0 repeat: 100 }
+    flows: { initiator: 3 target: 0 repeat: 100 }
+    flows: { initiator: 4 target: 0 repeat: 100 }
+    flows: { initiator: 5 target: 0 repeat: 100 }
+    bidirectional: false
+  }
+}
+
+# Optionally define specific CPU cores to pin each follower thread.
+thread_affinity_type: THREAD_AFFINITY_EXPLICIT
+explicit_thread_affinity_param {
+  explicit_thread_affinity_configs {
+    follower_id: 1
+    traffic_pattern_id: 1
+    cpu_core_id: 1
+  }
+  explicit_thread_affinity_configs {
+    follower_id: 2
+    traffic_pattern_id: 1
+    cpu_core_id: 1
+  }
+  explicit_thread_affinity_configs {
+    follower_id: 3
+    traffic_pattern_id: 1
+    cpu_core_id: 1
+  }
+  explicit_thread_affinity_configs {
+    follower_id: 4
+    traffic_pattern_id: 1
+    cpu_core_id: 1
+  }
+  explicit_thread_affinity_configs {
+    follower_id: 5
+    traffic_pattern_id: 1
+    cpu_core_id: 1
+  }
+}

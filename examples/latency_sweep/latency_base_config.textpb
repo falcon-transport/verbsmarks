@@ -1,0 +1,56 @@
+# proto-file: verbsmarks.proto
+# proto-message: LeaderConfig
+
+# 2-node, unidirectional latency workload with 1B SEND_RECEIVE ops. Closed-loop
+# with 1 outstanding operation. Used as a template for sweep experiments
+# sweep_closedloop_latency_over_msg_size.textpb,
+# sweep_openloop_latency_over_msg_size.textpb, and
+# sweep_latency_over_qp_count.textpb.
+
+group_size: 2
+quorum_time_out_sec: 300  # Waiting time for all nodes to join the quorum.
+traffic_patterns: {
+  global_traffic_id: 1
+  participants: {
+    all: true  # Specify all instead of specific_followers to use all nodes.
+  }
+  connection_type: CONNECTION_TYPE_RC
+  closed_loop_max_outstanding: 1  # Limit to 1 outstanding operation.
+  traffic_characteristics {
+    op_ratio: { op_code: RDMA_OP_SEND_RECEIVE ratio: 1 }
+    message_size_distribution_type: MESSAGE_SIZE_DISTRIBUTION_FIXED
+    # For MESSAGE_SIZE_DISTRIBUTION_FIXED, mean==min==max.
+    size_distribution_params_in_bytes: { mean: 1 }
+    delay_time: { seconds: 0 }
+    buffer_time: { seconds: 0 }
+    experiment_time: { seconds: 60 }
+    batch_size: 1  # No batching.
+    inline_threshold: 128
+    # RECV post count may need to be increased on a slow system.
+    num_prepost_receive_ops: 256
+    traffic_class: 0
+  }
+  explicit_traffic: {
+    flows: { initiator: 0 target: 1 }
+    bidirectional: false
+  }
+  metrics_collection: {
+    # Record latency distribution for each second of runtime.
+    enable_per_second_stats: true
+  }
+}
+
+# Optionally define specific CPU cores to pin each follower thread.
+thread_affinity_type: THREAD_AFFINITY_EXPLICIT
+explicit_thread_affinity_param {
+  explicit_thread_affinity_configs {
+    follower_id: 0
+    traffic_pattern_id: 1
+    cpu_core_id: 1
+  }
+  explicit_thread_affinity_configs {
+    follower_id: 1
+    traffic_pattern_id: 1
+    cpu_core_id: 2
+  }
+}

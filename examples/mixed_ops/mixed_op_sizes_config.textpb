@@ -1,0 +1,41 @@
+# proto-file: verbsmarks.proto
+# proto-message: LeaderConfig
+
+# 2-node unidirectional traffic with a mixture of 8B, 1B, and 4KB READ/WRITE
+# operations and open-loop load.
+
+group_size: 2
+quorum_time_out_sec: 300  # Waiting time for all nodes to join the quorum.
+traffic_patterns: {
+  global_traffic_id: 1
+  participants: {
+    all: true  # Specify all instead of specific_followers to use all nodes.
+  }
+  connection_type: CONNECTION_TYPE_RC
+  open_loop_parameters {
+    offered_load_gbps: 0.00001
+    arrival_time_distribution_type: ARRIVAL_TIME_DISTRIBUTION_FIXED
+  }
+  traffic_characteristics {
+    # 20% (1/5) 8B WRITEs, 60% (3/5) 1B WRITEs,  20% (1/5) 4KB READs.
+    op_ratio: { op_code: RDMA_OP_WRITE ratio: 1 op_size: 8 }
+    op_ratio: { op_code: RDMA_OP_WRITE ratio: 3 op_size: 1 }
+    op_ratio: { op_code: RDMA_OP_READ ratio: 1 op_size: 4096 }
+    # Sizes are specified within each op_ratio element.
+    message_size_distribution_type: MESSAGE_SIZE_DISTRIBUTION_BY_OPS
+    delay_time: { seconds: 0 }
+    buffer_time: { seconds: 0 }
+    experiment_time: { seconds: 10 }
+    batch_size: 1
+    # Ops with ≤36B size will be submitted inline.
+    inline_threshold: 36
+  }
+  explicit_traffic: {
+    flows: { initiator: 0 target: 1 }
+    bidirectional: false
+  }
+  metrics_collection: {
+    # Record latency distribution for each second of runtime.
+    enable_per_second_stats: true
+  }
+}

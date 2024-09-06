@@ -1,0 +1,42 @@
+# proto-file: verbsmarks.proto
+# proto-message: LeaderConfig
+
+# Uniform random traffic where all 5 nodes sending to other nodes, with mixed
+# 4B READ/WRITE/SEND_RECEIVE ops, with fixed arrival distribution (open-loop).
+
+group_size: 5
+quorum_time_out_sec: 300  # Waiting time for all nodes to join the quorum.
+traffic_patterns: {
+  global_traffic_id: 1
+  participants: {
+    all: true  # Specify all instead of specific_followers to use all nodes.
+  }
+  connection_type: CONNECTION_TYPE_RC
+  open_loop_parameters {
+    # Uniform random traffic, fixed arrival time distribution and low load.
+    offered_load_gbps: 0.000001
+    arrival_time_distribution_type: ARRIVAL_TIME_DISTRIBUTION_FIXED
+  }
+  traffic_characteristics {
+    # Equal ratio of READ/WRITE/SEND_RECEIVE. Op distribution is determined by
+    # individual ratio over the sum of all ratio values.
+    op_ratio: { op_code: RDMA_OP_READ ratio: 1 }
+    op_ratio: { op_code: RDMA_OP_WRITE ratio: 1 }
+    op_ratio: { op_code: RDMA_OP_SEND_RECEIVE ratio: 1 }
+    message_size_distribution_type: MESSAGE_SIZE_DISTRIBUTION_FIXED
+    size_distribution_params_in_bytes: { mean: 4 }
+    delay_time: { seconds: 0 }
+    buffer_time: { seconds: 0 }
+    experiment_time: { seconds: 300 }
+    batch_size: 1
+  }
+  uniform_random_traffic: {
+    # All the nodes will randomly choose targets.
+    initiators: { all: true }
+    targets: { all: true }
+  }
+  metrics_collection: {
+    # Record latency distribution for each second of runtime.
+    enable_per_second_stats: true
+  }
+}

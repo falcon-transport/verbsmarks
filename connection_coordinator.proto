@@ -1,0 +1,65 @@
+// Copyright 2024 Google LLC
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//     http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package verbsmarks.proto;
+
+option java_multiple_files = true;
+
+// The ConnectionCoordinator allows nodes to communicate peer to peer, getting
+// the necessary information from one another to connect queue pairs for
+// specific traffic patterns.
+service ConnectionCoordinator {
+  // Retrieves information necessary to connect queue pairs.
+  rpc GetQueuePairAttributes(QueuePairAttributesRequest)
+      returns (QueuePairAttributesResponse) {}
+}
+
+// The attributes needed to connect and issue operations to a remote queue pair.
+message RemoteQueuePairAttributes {
+  uint32 qp_num = 1;
+  bytes gid = 2;  // The global routing identifier. The 16 bytes in the
+                  // "raw" field of the ibv_gid struct.
+
+  repeated uint32 rkeys =
+      3;  // The remote access keys for the remote's memory region. QueuePair
+          // populates this field according to its remote controlled memory
+          // regions, whose number depends on MemoryResourcePolicy.
+
+  uint64 addr = 4;  // The address of the remote memory block.
+
+  int32 queue_pair_id = 5;
+}
+
+// The request and response messages containing information to connect queue
+// pairs. The `traffic_pattern_id` of the response should match that of the
+// request.
+message QueuePairAttributesRequest {
+  int64 requester_id = 1;
+  int64 traffic_pattern_id = 2;
+  int32 queue_pair_id =
+      3;  //
+
+  repeated int32 queue_pair_ids = 4;
+}
+
+message QueuePairAttributesResponse {
+  int64 responder_id = 1;
+  int64 traffic_pattern_id = 2;
+  int32 queue_pair_id = 3;
+  RemoteQueuePairAttributes remote_attributes = 4;
+  string responder_ip_addr = 5;
+  repeated RemoteQueuePairAttributes remote_attribute_per_qp = 6;
+}

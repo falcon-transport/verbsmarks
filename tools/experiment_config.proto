@@ -1,0 +1,106 @@
+// Copyright 2024 Google LLC
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//     http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package verbsmarks.proto;
+
+import "tools/experiment_host.proto";
+import "verbsmarks.proto";
+
+message OpRatioConfig {
+  repeated RdmaOpRatio op_ratio = 1;
+}
+
+message VerbsmarksSweepParameterConfig {
+  // Total number of traffic patterns in an experiment.
+  repeated int32 number_of_threads = 1;
+
+  // The number of QPs per traffic pattern.
+  repeated int32 number_of_qps = 2;
+
+  // Message size per traffic pattern.
+  repeated int32 message_sizes = 3;
+
+  // Op ratio config per traffic pattern.
+  repeated OpRatioConfig op_ratio_configs = 4;
+
+  // Offered load in open loop per traffic pattern.
+  repeated double offered_loads = 5;
+
+  // Max outstanding ops in closed loop per traffic pattern. Not allowed to set
+  // offered_loads and max_outstanding_ops at the same time.
+  repeated int32 max_outstanding_ops = 6;
+
+  // Inline threshold per traffic pattern.
+  repeated int32 inline_threshold = 7;
+
+  // The number of operations that should be submitted in each call to
+  // `ibv_post_send`.
+  repeated int32 batch_size = 8;
+
+  // The amount of time during which to take experiment measurements.
+  repeated int32 experiment_time_seconds = 9;
+
+  // For special traffic patterns that takes `iterations`.
+  repeated int64 iterations = 10;
+
+  // For open loop arrival distribution.
+  repeated ArrivalTimeDistributionType arrival_time_distribution_type = 11;
+
+  // Traffic class.
+  repeated int32 traffic_class = 12;
+
+  // Override number of repeats for all flows.
+  repeated int32 number_of_repeats = 13;
+}
+
+// The result directory format is determined by the given experiment config. For
+// example, the root path of the local log and result path is
+// <local_base_dir>/<experiment_label>.
+message ExperimentConfig {
+  repeated HostInfo hosts = 1;
+
+  // Verbsmarks config template file (could be a local file path). Required.
+  string traffic_pattern_template_file_path = 2;
+
+  // The name of the root folder storing logs and results of the experiment.
+  // Required.
+  string experiment_label = 3;
+
+  // The brief description of the experiment purpose. Required.
+  string experiment_description = 4;
+
+  // The base dir on the machine to store logs and results.
+  string remote_base_dir = 5;
+
+  // The base dir on local machine to store the downloaded experiment logs and
+  // results. If not specified, the default path is "$HOME/verbsmarks/".
+  string local_base_dir = 6;
+
+  reserved 7;
+
+  // Specify the number of iterations to repeat each triggered experiment.
+  int32 experiment_iterations = 8;
+
+  // The log file to store the status of executed experiments. It can be used to
+  // resume the rest of the experiments from the last machine crash. The dir
+  // name of this file is local_base_dir.
+  string experiment_execution_log = 9;
+
+  // The sweep parameters for verbsmarks.
+  VerbsmarksSweepParameterConfig verbsmarks_sweep_parameters = 10;
+
+  reserved 11;
+}

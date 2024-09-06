@@ -1,0 +1,54 @@
+# proto-file: verbsmarks.proto
+# proto-message: LeaderConfig
+
+# 2-node pingpong workload with 1B SEND_RECEIVE ops.
+
+# This LeaderConfig may be run individually, or may be used as a template for
+# sweep experiments (specified as traffic_pattern_template_file_path in an
+# ExperimentConfig proto), for example sweep_pingpong_over_msg_size.textpb.
+
+group_size: 2
+quorum_time_out_sec: 300  # Waiting time for all nodes to join the quorum.
+traffic_patterns: {
+  global_traffic_id: 1
+  participants: {
+    all: true  # Specify all instead of specific_followers to use all nodes.
+  }
+  connection_type: CONNECTION_TYPE_RC
+  # In pingpong, closed_loop_max_outstanding is how many recv ops the
+  # application can pre-post. Regardless of this value, in-flight op count for
+  # pingpong is always 1.
+  closed_loop_max_outstanding: 1
+  traffic_characteristics {
+    op_ratio: { op_code: RDMA_OP_SEND_RECEIVE ratio: 1 }
+    message_size_distribution_type: MESSAGE_SIZE_DISTRIBUTION_FIXED
+    # For MESSAGE_SIZE_DISTRIBUTION_FIXED, mean==min==max.
+    size_distribution_params_in_bytes: { mean: 1 }
+    delay_time: { seconds: 0 }
+    buffer_time: { seconds: 0 }
+    experiment_time: { seconds: 10 }
+    batch_size: 1
+    inline_threshold: 128
+    num_prepost_receive_ops: 4
+  }
+  pingpong_traffic: {
+    initiator: 0
+    target: 1
+    iterations: 100000  # Iteration count must be provided for pingpong traffic.
+  }
+}
+
+# Optionally define specific CPU cores to pin each follower thread.
+thread_affinity_type: THREAD_AFFINITY_EXPLICIT
+explicit_thread_affinity_param {
+  explicit_thread_affinity_configs {
+    follower_id: 0
+    traffic_pattern_id: 1
+    cpu_core_id: 1
+  }
+  explicit_thread_affinity_configs {
+    follower_id: 1
+    traffic_pattern_id: 1
+    cpu_core_id: 2
+  }
+}

@@ -1,0 +1,60 @@
+# proto-file: verbsmarks.proto
+# proto-message: LeaderConfig
+# Traffic 1 uses UD and traffic 2 uses RC.
+
+group_size: 2
+quorum_time_out_sec: 300
+traffic_patterns: {
+  global_traffic_id: 1
+  participants: {
+    all: true
+  }
+  connection_type: CONNECTION_TYPE_UD
+  open_loop_parameters {
+    offered_load_gbps: 0.00001
+    arrival_time_distribution_type: ARRIVAL_TIME_DISTRIBUTION_FIXED
+  }
+  traffic_characteristics {
+    op_ratio: { op_code: RDMA_OP_SEND_RECEIVE ratio: 1 }
+    message_size_distribution_type: MESSAGE_SIZE_DISTRIBUTION_FIXED
+    size_distribution_params_in_bytes: { mean: 32 }
+    delay_time: { seconds: 0 }
+    buffer_time: { seconds: 5 }
+    experiment_time: { seconds: 30 }
+    batch_size: 1
+  }
+  explicit_traffic: {
+    flows: { initiator: 0 target: 1 }
+    bidirectional: false
+  }
+  metrics_collection: {
+    enable_per_second_stats: true
+  }
+}
+traffic_patterns: {
+  global_traffic_id: 2
+  participants: {
+    all: true
+  }
+  connection_type: CONNECTION_TYPE_RC
+  open_loop_parameters {
+    offered_load_gbps: 0.00001
+    arrival_time_distribution_type: ARRIVAL_TIME_DISTRIBUTION_FIXED
+  }
+  traffic_characteristics {
+    op_ratio: { op_code: RDMA_OP_WRITE ratio: 1 }
+    message_size_distribution_type: MESSAGE_SIZE_DISTRIBUTION_FIXED
+    size_distribution_params_in_bytes: { mean: 32 }
+    delay_time: { seconds: 0 }
+    buffer_time: { seconds: 5 }
+    experiment_time: { seconds: 30 }
+    batch_size: 1
+  }
+  explicit_traffic: {
+    flows: { initiator: 0 target: 1 }
+    bidirectional: true
+  }
+  metrics_collection: {
+    enable_per_second_stats: true
+  }
+}

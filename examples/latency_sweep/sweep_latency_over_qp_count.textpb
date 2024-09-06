@@ -1,0 +1,48 @@
+# proto-file: tools/experiment_config.proto
+# proto-message: ExperimentConfig
+
+# Parameter sweep for 2-node open-loop WRITE latency, varying QP count, with
+# 0.005Gbps offered load, 100-10000 QPs, and 100 threads.
+
+hosts {
+  name: "host1"
+  follower_count: 1
+}
+hosts: {
+  name: "host2"
+  follower_count: 1
+}
+
+# Base config is a LeaderConfig defining constant config options. Any parameters
+# defined in verbsmarks_sweep_parameters will override the base config.
+traffic_pattern_template_file_path: "examples/latency_sweep/latency_base_config.textpb"
+# Optionally specify iterations to repeat each parameter combination multiple
+# times.
+experiment_iterations: 0
+
+verbsmarks_sweep_parameters {
+  # Sweep configs will include cartesian product of all repeated parameters
+  # (i.e., each combination of message size and op type).
+
+  # Specifying offered_loads and arrival_time_distribution_type overrides
+  # closed-loop values in latency_base_config.textpb.
+  offered_loads: 0.005
+  arrival_time_distribution_type: ARRIVAL_TIME_DISTRIBUTION_FIXED
+
+  # Specifying number_of_threads=N will repeat the traffic pattern N times.
+  number_of_threads: 100
+
+  # Sweep over QP count, which is per-thread (100, 1000, 10000 total).
+  number_of_qps: 1
+  number_of_qps: 10
+  number_of_qps: 100
+
+  message_sizes: 4096
+
+  op_ratio_configs: {
+    op_ratio: {
+      op_code: RDMA_OP_WRITE
+      ratio: 1.0
+    }
+  }
+}

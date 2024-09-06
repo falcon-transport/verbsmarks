@@ -1,0 +1,104 @@
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
+
+http_archive(
+    name = "com_google_glog",
+    strip_prefix = "glog-0.5.0",
+    url = "https://github.com/google/glog/archive/v0.5.0.tar.gz",
+    integrity = "sha256-7t5x8oNxvzmqabRd4jsynTchQBbiBVJps7Xnz9QLWfU=",
+)
+
+http_archive(
+    name = "com_google_googletest",
+    strip_prefix = "googletest-1.14.0",
+    url = "https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz",
+)
+
+http_archive(
+    name = "com_github_gflags_gflags",
+    strip_prefix = "gflags-2.2.2",
+    url = "https://github.com/gflags/gflags/archive/refs/tags/v2.2.2.tar.gz",
+    integrity = "sha256-NK8vFc9zZ1E7NSvc0kk6sUzkNpLS3NnfxJlJKWbGTc8=",
+)
+
+http_archive(
+    name = "com_github_google_farmhash",
+    strip_prefix = "farmhash-0d859a811870d10f53a594927d0d0b97573ad06d/src",
+    url = "https://github.com/google/farmhash/archive/0d859a811870d10f53a594927d0d0b97573ad06d.tar.gz",
+    integrity = "sha256-GDks8HNuHWLsu41pXDFJa2UHhZ6MdVQdetC6CS3FIRU=",
+    build_file_content = """
+cc_library(
+  name = "farmhash",
+  srcs = ["farmhash.cc"],
+  hdrs = ["farmhash.h"],
+  includes = ["src/."],
+  visibility = ["//visibility:public"],
+  defines=["NAMESPACE_FOR_HASH_FUNCTIONS=farmhash"],
+)
+"""
+)
+
+http_archive(
+    name = "com_github_nelhage_rules_boost",
+    strip_prefix = "rules_boost-d8f4f9f88b12461b19354dea4df5f9ee78262067",
+    url = "https://github.com/nelhage/rules_boost/archive/d8f4f9f88b12461b19354dea4df5f9ee78262067.tar.gz",
+    integrity = "sha256-F4aAsKUJPhenR7/ohgrcfVwyqRBZg8EHVHghCXPRsIM=",
+)
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+boost_deps()
+
+http_archive(
+    name = "folly",
+    strip_prefix = "folly-2024.05.06.00",
+    url = "https://github.com/facebook/folly/archive/refs/tags/v2024.05.06.00.tar.gz",
+    integrity = "sha256-1QQY0On7Yg3vNv61DEqMYN1NfcOl7xrPSGck8OeluD4=",
+    build_file_content = """
+licenses(["notice"])
+package(default_visibility = ["//visibility:public"])
+cc_library(
+    name = "folly",
+    srcs = glob(
+        [
+            "folly/stats/*.cpp",
+            "folly/stats/detail/*.cpp",
+        ],
+    ),
+    hdrs = glob(
+        ["folly/**/*.h"],
+        exclude = ["folly/**/test/**/*.h"],
+    ),
+    defines = [
+        "FOLLY_NO_CONFIG",
+        "FOLLY_USE_LIBCPP=1",
+        "FOLLY_HAVE_LIBJEMALLOC=0",
+    ],
+    features = [
+        "-layering_check",
+    ],
+    includes = ["."],
+    deps = [
+        "@boost//:graph",
+        "@com_google_glog//:glog",
+    ],
+    alwayslink = True,
+)
+"""
+)
+
+new_local_repository(
+    name = "libibverbs",
+    path = "/usr/lib/x86_64-linux-gnu",
+    build_file_content = """
+cc_library(
+    name = "libibverbs",
+    srcs = [
+         "libibverbs.so",
+         "libnl-3.so.200",
+         "libnl-route-3.so.200",
+    ],
+    visibility = ["//visibility:public"],
+)
+""",
+)
