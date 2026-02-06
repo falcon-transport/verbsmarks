@@ -29,7 +29,7 @@ Ensure `libibverbs` and `libnuma` are installed. Update the `USR_LIB_DIR` path
 in `deps.bzl` if these are installed in a directory other than
 `/usr/lib/x86_64-linux-gnu`.
 
-Verbsmarks can be built using `bazel 8.5.0` and newer. Run from the repository
+Verbsmarks can be built using `bazel 8.5.*`. Run from the repository
 root:
 ```
 bazel build verbsmarks_main
