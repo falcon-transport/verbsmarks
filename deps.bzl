@@ -19,6 +19,8 @@ load("@bazel_tools//tools/build_defs/repo:local.bzl", "new_local_repository")
 
 # Base directory for libibverbs and libnuma.
 USR_LIB_DIR = "/usr/lib/x86_64-linux-gnu"
+LIBVERBS_DIR = USR_LIB_DIR
+LIBNUMA_DIR = USR_LIB_DIR
 
 def _deps_extension_impl(_ctx):
     http_archive(
@@ -51,7 +53,7 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 """,
-        path = USR_LIB_DIR,
+        path = LIBVERBS_DIR,
     )
 
     new_local_repository(
@@ -65,7 +67,7 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 """,
-        path = USR_LIB_DIR,
+        path = LIBNUMA_DIR,
     )
 
 deps_extension = module_extension(implementation = _deps_extension_impl)
